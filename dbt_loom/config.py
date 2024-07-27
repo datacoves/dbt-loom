@@ -8,6 +8,7 @@ from dbt_loom.clients.az_blob import AzureReferenceConfig
 from dbt_loom.clients.dbt_cloud import DbtCloudReferenceConfig
 from dbt_loom.clients.gcs import GCSReferenceConfig
 from dbt_loom.clients.s3 import S3ReferenceConfig
+from dbt_loom.clients.datacoves import DatacovesReferenceConfig
 
 
 class ManifestReferenceType(str, Enum):
@@ -18,6 +19,7 @@ class ManifestReferenceType(str, Enum):
     gcs = "gcs"
     s3 = "s3"
     azure = "azure"
+    datacoves = "datacoves"
 
 
 class FileReferenceConfig(BaseModel):
@@ -37,6 +39,7 @@ class ManifestReference(BaseModel):
         GCSReferenceConfig,
         S3ReferenceConfig,
         AzureReferenceConfig,
+        DatacovesReferenceConfig,
     ]
 
 
@@ -47,4 +50,4 @@ class dbtLoomConfig(BaseModel):
 
 
 class LoomConfigurationError(BaseException):
-    """Error raised when dbt-loom has been misconfigured."""
+    """Error raised when datacoves-mesh has been misconfigured."""
