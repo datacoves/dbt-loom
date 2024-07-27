@@ -1,7 +1,7 @@
 import datetime
 import json
 import gzip
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 from pydantic import BaseModel, Field, validator
 
@@ -14,6 +14,8 @@ from dbt_loom.clients.az_blob import AzureClient, AzureReferenceConfig
 from dbt_loom.clients.dbt_cloud import DbtCloud, DbtCloudReferenceConfig
 from dbt_loom.clients.gcs import GCSClient, GCSReferenceConfig
 from dbt_loom.clients.s3 import S3Client, S3ReferenceConfig
+from dbt_loom.clients.datacoves import Datacoves, DatacovesReferenceConfig
+
 from dbt_loom.config import (
     FileReferenceConfig,
     LoomConfigurationError,
@@ -74,6 +76,7 @@ class ManifestLoader:
             ManifestReferenceType.gcs: self.load_from_gcs,
             ManifestReferenceType.s3: self.load_from_s3,
             ManifestReferenceType.azure: self.load_from_azure,
+            ManifestReferenceType.datacoves: self.load_from_datacoves,
         }
 
     @staticmethod
@@ -81,7 +84,7 @@ class ManifestLoader:
         """Load a manifest dictionary from a local file"""
         if not config.path.exists():
             raise LoomConfigurationError(f"The path `{config.path}` does not exist.")
-        
+
         if config.path.suffix == '.gz':
             with gzip.open(config.path, 'rt') as file:
                 return json.load(file)
@@ -118,6 +121,25 @@ class ManifestLoader:
         )
 
         return gcs_client.load_manifest()
+
+
+    @staticmethod
+    def load_from_datacoves(config: DatacovesReferenceConfig) -> Dict[str, Any]:
+        """Load a manifest dictionary from Datacoves."""
+        if config.api_token == UNSET:
+            raise MeshConfigurationError(
+                "A Datacoves API token must be provided to datacoves-mesh when fetching "
+                "manifest data from Datacoves. Please provide one via the "
+                "`DATACOVES__MANIFEST__TOKEN` environment variable or the `api_token` config in dependencies.yml."
+            )
+
+        client = Datacoves(
+            project_name=config.project_name,
+            api_token=config.api_token,
+            api_endpoint=config.api_endpoint,
+        )
+
+        return client.get_models()
 
     @staticmethod
     def load_from_azure(config: AzureReferenceConfig) -> Dict:
