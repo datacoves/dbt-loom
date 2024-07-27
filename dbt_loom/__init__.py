@@ -106,7 +106,7 @@ def convert_model_nodes_to_model_node_args(
 class LoomRunnableConfig:
     """A shim class to allow is_invalid_*_ref functions to correctly handle access for loom-injected models."""
 
-    restrict_access: bool = False
+    restrict_access: bool = True
     vars: VarProvider = VarProvider(vars={})
 
 
@@ -119,12 +119,18 @@ class dbtLoom(dbtPlugin):
     def __init__(self, project_name: str):
         # Log the version of dbt-loom being intialized
         fire_event(
-            msg=f'Initializing dbt-loom={importlib.metadata.version("dbt-loom")}'
+            msg=f'Initializing datacoves-mesh={importlib.metadata.version("dbt-loom")}'
+
+            # msg=f'Initializing dbt-loom={importlib.metadata.version("dbt-loom")}'
         )
 
         configuration_path = Path(
-            os.environ.get("DBT_LOOM_CONFIG", "dbt_loom.config.yml")
-        )
+            dbt_project_location = os.environ.get("DATACOVES__DBT_HOME", Path.cwd())
+        ).joinpath("datacoves_mesh.yml")
+
+        # configuration_path = Path(
+        #     os.environ.get("DBT_LOOM_CONFIG", "dbt_loom.config.yml")
+        # )
 
         self._manifest_loader = ManifestLoader()
         self.manifests: Dict[str, Dict] = {}
@@ -135,7 +141,8 @@ class dbtLoom(dbtPlugin):
         import dbt.contracts.graph.manifest
 
         fire_event(
-            msg="dbt-loom: Patching ref protection methods to support dbt-loom dependencies."
+            # msg="dbt-loom: Patching ref protection methods to support dbt-loom dependencies."
+            msg="datacoves-mesh: Patching dbt Core protection methods to support dependencies."
         )
         dbt.contracts.graph.manifest.Manifest.is_invalid_protected_ref = (  # type: ignore
             self.dependency_wrapper(
@@ -235,7 +242,9 @@ class dbtLoom(dbtPlugin):
 
         for manifest_reference in self.config.manifests:
             fire_event(
-                msg=f"dbt-loom: Loading manifest for `{manifest_reference.name}`"
+                # msg=f"dbt-loom: Loading manifest for `{manifest_reference.name}`"
+
+                msg=f"datacoves-mesh: Loading manifest for `{manifest_reference.name}`"
                 f" from `{manifest_reference.type.value}`"
             )
 
@@ -253,7 +262,7 @@ class dbtLoom(dbtPlugin):
         """
         Inject PluginNodes to dbt for injection into dbt's DAG.
         """
-        fire_event(msg="dbt-loom: Injecting nodes")
+        fire_event(msg="datacoves-mesh: Injecting upstream nodes")
         return PluginNodes(models=self.models)  # type: ignore
 
 
