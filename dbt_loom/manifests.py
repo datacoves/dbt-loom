@@ -5,6 +5,8 @@ from typing import Dict, List, Optional, Any
 
 from pydantic import BaseModel, Field, validator
 
+UNSET = "unset"
+
 try:
     from dbt.artifacts.resources.types import NodeType
 except ModuleNotFoundError:
